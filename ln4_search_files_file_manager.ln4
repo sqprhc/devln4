@@ -1,0 +1,61 @@
+
+
+
+    _vPathNiv = GetRegistryValue( ".\CLIENT", "Path")
+    
+    _vPathNiv = T_AUX_FILE_MANAGER.GET_PATH(_vPathNiv)
+    
+//_vPathNiv = "X:\M4REL\M4SOURCE\3x_work\Tools\Jorgec\VbVss\hfc"
+    
+    _vPathNiv = T_AUX_FILE_MANAGER.NORMALIZE_PATH(_vPathNiv)
+    
+//Messagebox (",", _vPathNiv)
+ 
+ 
+' se buscan los archivos con esa raiz
+    hExtSearch = 0
+                                            
+    iRC = T_AUX_FILE_MANAGER.DLL_OS_OPEN_SEARCH (_vPathNiv , "*.HFC", NullValue(), M4_FALSE, M4_FALSE, hExtSearch)
+
+    If  iRC = M4_ERROR Then
+        return M4_ERROR
+    Endif       
+
+    sPathFile = ""
+    If T_AUX_FILE_MANAGER.DLL_OS_GET_NEXT_FILE (hExtSearch, sPathFile) = M4_ERROR Then
+        return M4_ERROR
+    Endif            
+    
+    While sPathFile <> ""
+         
+        //1.- Search file name
+        sAuxPath = Replace( sPathFile, "\", "/" )
+        iPos = LastIndexOf( sAuxPath, "/" )
+        sFile = Mid( sAuxPath, iPos + 1, (length(sAuxPath)-iPos) )
+        //sUCaseFile = ConvertCase( sFile, M4_UPPERCASE )
+            
+        hFile = 0
+        OpenFile ( sPathFile, hFile )
+        
+        sHotFixData = ""
+        ReadFile ( hFile, 1024, sHotFixData )
+        
+        //Por cada archivo creamos un registro.
+        If sHotFixData <> "" Then
+            AddRegister()
+            HF_FILE = sFile 
+            HF_DATA = sHotFixData 
+			
+			            CH_NV_FILE = sFile 
+            CH_NV_DATA = sNivData 
+        EndIf
+        
+        If T_AUX_FILE_MANAGER.DLL_OS_GET_NEXT_FILE (hExtSearch, sPathFile) = M4_ERROR Then
+            return M4_ERROR
+        Endif           
+
+    Wend
+        
+    If T_AUX_FILE_MANAGER.DLL_OS_CLOSE_SEARCH (hExtSearch) = M4_ERROR Then
+        return M4_ERROR
+    Endif 
